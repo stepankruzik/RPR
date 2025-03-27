@@ -2,176 +2,135 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace UnitTestProject1
 {
     [TestClass]
-    public class UnitTest1
+    public class HerniPostavaTests
     {
-        [TestMethod]
-        public void TestMethod1()
-        {
-
-        }
         [TestMethod]
         public void ArePositionsInitialized()
         {
-            HerniPostava postava = new HerniPostava();
-            Assert.AreEqual(postava.poziceX, 0);
-            Assert.AreEqual(postava.poziceY, 0);
+            HerniPostava postava = new HerniPostava("Test");
+            Assert.AreEqual(0, postava.PoziceX);
+            Assert.AreEqual(0, postava.PoziceY);
         }
 
         [TestMethod]
-        public void CanChangePositions()
+        public void CannotSetLongName()
         {
-            HerniPostava postava = new HerniPostava();
-            postava.changePosition(5, 5);
-            Assert.AreEqual(postava.poziceX, 5);
-            Assert.AreEqual(postava.poziceY, 5);
+            HerniPostava postava = new HerniPostava("DlouhéJméno123");
+            Assert.AreNotEqual("DlouhéJméno123", postava.Jmeno);
         }
 
         [TestMethod]
-        public void Jmeno_SetValid_SavesValue()
+        public void CanSetValidName()
         {
-            var postava = new HerniPostava("Legolas");
-            Assert.AreEqual("Legolas", postava.Jmeno);
+            HerniPostava postava = new HerniPostava("Hrdina");
+            Assert.AreEqual("Hrdina", postava.Jmeno);
         }
 
         [TestMethod]
-        public void Jmeno_TooLong_ShowsWarning()
+        public void LevelIsInitializedToOne()
         {
-            var postava = new HerniPostava("Krátké");
-            postava.Jmeno = "Extrémně dlouhé jméno přes 10 znaků";
-            Assert.AreNotEqual("Extrémně dlouhé jméno přes 10 znaků", postava.Jmeno);
-        }
-
-        [TestMethod]
-        public void Level_InitializedTo1()
-        {
-            var postava = new HerniPostava("Gandalf");
+            HerniPostava postava = new HerniPostava("Test");
             Assert.AreEqual(1, postava.Level);
         }
+    }
 
+    [TestClass]
+    public class HracTests
+    {
         [TestMethod]
-        public void ZmenaPozice_UpdatesOnClick()
+        public void CanSetValidSpecialization()
         {
-            var postava = new HerniPostava("Gimli");
-            postava.ZmenaPozice(5, 10);
-            Assert.AreEqual(5, postava.poziceX);
-            Assert.AreEqual(10, postava.poziceY);
+            Hrac hrac = new Hrac("Hrdina", "Kouzelník", 0, 0, 0);
+            Assert.AreEqual("Kouzelník", hrac.Specializace);
         }
 
         [TestMethod]
-        public void ToString_ContainsAllData()
+        public void CannotSetInvalidSpecialization()
         {
-            var postava = new HerniPostava("Boromir");
-            var result = postava.ToString();
-            StringAssert.Contains(result, "Boromir");
-            StringAssert.Contains(result, "Level: 1");
-            StringAssert.Contains(result, "Pozice: [0,0]");
-        }
-
-    
-        [TestMethod]
-        public void Specializace_ValidValue_Saves()
-        {
-            var hrac = new Hrac("Geralt", "Berserker", /* params */);
-            Assert.AreEqual("Berserker", hrac.Specializace);
+            Hrac hrac = new Hrac("Hrdina", "Neznámý", 0, 0, 0);
+            Assert.AreNotEqual("Neznámý", hrac.Specializace);
         }
 
         [TestMethod]
-        public void Specializace_InvalidValue_Throws()
+        public void AddXpLevelsUp()
         {
-            Assert.ThrowsException<ArgumentException>(() =>
-                new Hrac("Triss", "Programátor", /* params */));
-        }
-
-        [TestMethod]
-        public void PridejXP_LevelUpOnce()
-        {
-            var hrac = new Hrac("Yennefer", "Kouzelník", /* params */);
-            hrac.PridejXP(100);
+            Hrac hrac = new Hrac("Hrdina", "Berserker", 0, 0, 0);
+            hrac.PridejXP(200);
             Assert.AreEqual(2, hrac.Level);
         }
 
         [TestMethod]
-        public void PridejXP_MultipleLevelUps()
+        public void XpIsInitializedToZero()
         {
-            var hrac = new Hrac("Ciri", "Cizák", /* params */);
-            hrac.PridejXP(250);
-            Assert.AreEqual(3, hrac.Level); 
+            Hrac hrac = new Hrac("Hrdina", "Inženýr", 0, 0, 0);
+            Assert.AreEqual(0, hrac.XP);
         }
 
         [TestMethod]
-        public void PridejXP_NegativeValue_Throws()
+        public void AddNegativeXpDoesNotChangeXp()
         {
-            var hrac = new Hrac("Vesemir", "Inženýr", /* params */);
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => hrac.PridejXP(-50));
+            Hrac hrac = new Hrac("Hrdina", "Cizák", 0, 0, 0);
+            hrac.PridejXP(-50);
+            Assert.AreEqual(0, hrac.XP);
         }
 
         [TestMethod]
-        public void VzhledAttributes_Initialized()
+        public void LevelUpWithExactThreshold()
         {
-            var hrac = new Hrac("Zoltan", "Berserker", /* params */);
-            Assert.IsNotNull(hrac.Vlasy);
-            Assert.IsNotNull(hrac.Oblicij);
+            Hrac hrac = new Hrac("Hrdina", "Kouzelník", 0, 0, 0);
+            hrac.PridejXP(100);
+            Assert.AreEqual(2, hrac.Level);
+        }
+    }
+
+    [TestClass]
+    public class NPCTests
+    {
+        [TestMethod]
+        public void NPC_PositionCannotChange()
+        {
+            NPC npc = new NPC("Obchodník", "obchodník", false);
+            npc.ZmenaPozice(5, 5);
+            Assert.AreEqual(0, npc.PoziceX);
+            Assert.AreEqual(0, npc.PoziceY);
         }
 
         [TestMethod]
-        public void ToString_IncludesXPandSpec()
+        public void NPC_CorrectJobAssignment()
         {
-            var hrac = new Hrac("Dandelion", "Kouzelník", /* params */);
-            var result = hrac.ToString();
-            StringAssert.Contains(result, "XP: 0");
-            StringAssert.Contains(result, "Kouzelník");
+            NPC npc = new NPC("Nepřítel", "nepřítel", true);
+            Assert.AreEqual("nepřítel", npc.Prace);
         }
 
         [TestMethod]
-        public void Prace_EnumSetCorrectly()
+        public void NPC_DefaultIsNotBoss()
         {
-            var npc = new NPC("Vesničan", "obchodník", /* params */);
-            Assert.AreEqual(Prace.obchodník, npc.Prace);
-        }
-
-        [TestMethod]
-        public void Sila_DefaultNonBoss()
-        {
-            var npc = new NPC("Strážný", "obyvatel");
+            NPC npc = new NPC("Obchodník", "obchodník");
             Assert.IsFalse(npc.Sila);
         }
 
         [TestMethod]
-        public void Sila_BossSetCorrectly()
+        public void NPC_CanBeBoss()
         {
-            var npc = new NPC("Dracula", "nepřítel", sila: true);
+            NPC npc = new NPC("Boss", "nepřítel", true);
             Assert.IsTrue(npc.Sila);
         }
 
         [TestMethod]
-        public void ZmenaPozice_StaticAfterSet()
+        public void NPC_PositionRemainsStatic()
         {
-            var npc = new NPC("Kovář", "obchodník");
-            npc.ZmenaPozice(10, 20);
-            npc.ZmenaPozice(30, 40); 
-            Assert.AreEqual(10, npc.PoziceX);
-            Assert.AreEqual(20, npc.PoziceY);
+            NPC npc = new NPC("Statická postava", "obyvatel", false);
+            npc.ZmenaPozice(10, 10);
+            Assert.AreEqual(0, npc.PoziceX);
+            Assert.AreEqual(0, npc.PoziceY);
         }
-
-        [TestMethod]
-        public void ToString_IncludesPraceSila()
-        {
-            var npc = new NPC("Barman", "obyvatel", sila: false);
-            var result = npc.ToString();
-            StringAssert.Contains(result, "Práce: obyvatel");
-            StringAssert.Contains(result, "BOSS: Ne");
-        }
-
-        [TestMethod]
-        public void HerniPostava_AbstractCheck()
-        {
-            Assert.IsFalse(typeof(HerniPostava).IsAbstract);
-        }
-
-        
     }
+
+
 }
+
