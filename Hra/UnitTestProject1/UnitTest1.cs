@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 namespace UnitTestProject1
 {
     [TestClass]
-    public class HerniPostavaTests
+    public class UnitTest1
     {
         [TestMethod]
         public void ArePositionsInitialized()
